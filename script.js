@@ -3,7 +3,7 @@ let modeType="time", duration=15, targetWords=50;
 let started=false, finished=false, startTime=0, timer=null;
 let currentWords=[], typed="", finalResult=null, history=[];
 
-const $=id=>document.getElementById(id), input=$("input"), display=$("words");
+const $=id=>document.getElementById(id), display=$("words");
 
 async function loadWords(){
   try{
@@ -32,13 +32,9 @@ function newTest(){
   $("time").textContent=modeType==="words"?targetWords:duration;
   $("timeUnit").textContent=modeType==="words"?" words":"s";
   render();
-  input.value="";
-  focusTyping();
+  render();
 }
 
-function focusTyping(){
-  input.focus({preventScroll:true});
-}
 
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
 
@@ -123,27 +119,45 @@ function finish(){
   $("modalWpm").textContent=m.wpm; $("modalRaw").textContent=m.raw; $("modalAcc").textContent=m.acc+"%"; $("modalScore").textContent=score;
   $("resultsSubtitle").textContent=modeType==="time"?`${duration} second test`:`${targetWords} word test`;
   $("resultsOverlay").classList.remove("hidden");
-  input.blur(); requestAnimationFrame(drawGraph); render();
+  requestAnimationFrame(drawGraph); render();
 }
 
-input.addEventListener("input",()=>{
-  if(finished)return;
-  typed=input.value;
-  if(!started){started=true;startTime=Date.now();history=[{t:0,wpm:0,raw:0,acc:100}];timer=setInterval(tick,100);}
-  const expected=currentWords.join(" "), done=typed.trim().split(/\s+/).filter(Boolean).length;
-  if((modeType==="time"&&typed.length>=expected.length)||(modeType==="words"&&done>=targetWords)) finish();
-  else {render();tick();}
-});
-
-document.addEventListener("keydown",e=>{
+document.addEventListener("keydown", e=>{
+  // Tab is the global restart key. Never let the browser move focus away.
   if(e.key==="Tab"){
     e.preventDefault();
     if(!e.shiftKey) newTest();
+    return;
   }
-  if(!finished && document.activeElement!==input && !e.ctrlKey && !e.altKey && !e.metaKey && e.key.length===1) focusTyping();
+  if(finished) return;
+  // Let browser/system shortcuts work normally.
+  if(e.ctrlKey || e.altKey || e.metaKey) return;
+
+  // Typing is captured directly from the document; there is no input box.
+  if(e.key==="Backspace"){
+    e.preventDefault();
+    if(typed.length) typed=typed.slice(0,-1);
+    render();
+    if(started) tick();
+    return;
+  }
+
+  // Only accept printable characters. Space is important for word tests.
+  if(e.key.length===1){
+    e.preventDefault();
+    if(!started){
+      started=true;
+      startTime=Date.now();
+      history=[{t:0,wpm:0,raw:0,acc:100}];
+      timer=setInterval(tick,100);
+    }
+    typed += e.key;
+    const expected=currentWords.join(" ");
+    const done=typed.trim().split(/\s+/).filter(Boolean).length;
+    if((modeType==="time" && typed.length>=expected.length) || (modeType==="words" && done>=targetWords)) finish();
+    else { render(); tick(); }
+  }
 });
-display.addEventListener("click",focusTyping);
-document.body.addEventListener("click",e=>{if(!e.target.closest("button,input,a"))focusTyping();});
 $("restart").onclick=newTest;
 
 function setMode(type,value=null){

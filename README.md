@@ -1,4 +1,4 @@
-# TypeTap v5
+# TapTyping v5
 
 - Static, non-scrolling typing page.
 - Words move toward the player by translating the active line into view.

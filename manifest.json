@@ -1,6 +1,6 @@
 {
-  "name":"TypeTap",
-  "short_name":"TypeTap",
+  "name":"TapTyping",
+  "short_name":"TapTyping",
   "start_url":"./",
   "display":"standalone",
   "background_color":"#0B1A2E",

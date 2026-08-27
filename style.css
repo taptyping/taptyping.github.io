@@ -39,3 +39,9 @@ footer{text-align:center;color:#4f6378;font-size:10px;padding:18px;flex:0 0 50px
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.modal-actions button{background:transparent;color:var(--muted);font:inherit;border-radius:9px;padding:10px 14px;border:1px solid #d9e1e814;cursor:pointer}.modal-actions .primary{background:var(--cyan);color:var(--navy);font-weight:600}
 body.light{--navy:#eef4f8;--gray:#13263b;--panel:#fff;--muted:#63788d;--line:#10243d18}body.light .custom-panel input{background:#eef4f8;color:var(--gray)}body.light .results-overlay{background:#dce8f0d9}
 @media(max-width:700px){header{padding:0 4vw;gap:12px}.page{padding-top:10px}.card{padding:20px}.words{font-size:20px;height:220px}.word-line{height:36px}.toolbar{flex-wrap:wrap}.restart{margin-left:auto}.results-modal{padding:25px}.results-big strong{font-size:29px}.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:40px 1fr 70px 75px}.row>:last-child{display:none}}
+/* Typing input is intentionally invisible: the entire typing surface receives keyboard focus. */
+#input{position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none}
+.words{cursor:text;touch-action:none}
+.custom-panel select{background:#0b1a2e;border:1px solid #ffffff1a;color:var(--gray);border-radius:8px;padding:7px 8px;outline:none;font:inherit;font-size:11px}
+.results-big{grid-template-columns:repeat(4,1fr)}
+@media(max-width:700px){.results-big{grid-template-columns:1fr 1fr}}

@@ -4,10 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TypeTap</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 <header>
@@ -32,24 +30,26 @@
       <button class="mode-toggle" data-type="words">words</button>
       <button class="mode-toggle" data-type="time">time</button>
       <button class="mode custom" data-type="custom">custom</button>
-      <button id="restart" class="restart" title="Restart">↻</button>
+      <button id="restart" class="restart" title="Restart (Tab)">↻</button>
     </div>
 
     <div id="customPanel" class="custom-panel hidden">
       <label>time <input id="customTime" type="number" min="1" max="3600" value="45"><span>sec</span></label>
       <label>words <input id="customWords" type="number" min="10" max="1000" value="50"></label>
+      <label>type <select id="customType"><option value="time">time</option><option value="words">words</option></select></label>
       <button id="applyCustom" class="apply-custom">apply</button>
     </div>
 
     <div class="live">
       <span><b id="wpm">0</b> wpm</span>
+      <span><b id="raw">0</b> raw</span>
       <span><b id="acc">100</b>% acc</span>
       <span><b id="time">15</b><span id="timeUnit">s</span></span>
     </div>
 
     <div id="words" class="words" tabindex="0" aria-label="Typing text"></div>
     <input id="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <div class="hint">start typing · <kbd>tab</kbd> + <kbd>enter</kbd> to restart</div>
+    <div class="hint">start typing · <kbd>tab</kbd> to restart</div>
   </div>
 </section>
 
@@ -79,6 +79,7 @@
 
     <div class="results-big">
       <div><small>wpm</small><strong id="modalWpm">0</strong></div>
+      <div><small>raw</small><strong id="modalRaw">0</strong></div>
       <div><small>accuracy</small><strong id="modalAcc">0%</strong></div>
       <div><small>score</small><strong id="modalScore">0</strong></div>
     </div>
@@ -96,5 +97,6 @@
 </div>
 
 <script src="script.js"></script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 </body>
 </html>

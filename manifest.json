@@ -1,0 +1,9 @@
+{
+  "name":"TypeTap",
+  "short_name":"TypeTap",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#0B1A2E",
+  "theme_color":"#0B1A2E",
+  "icons":[]
+}

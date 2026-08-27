@@ -3,7 +3,7 @@
   "short_name":"TapTyping",
   "start_url":"./",
   "display":"standalone",
-  "background_color":"#0B1A2E",
-  "theme_color":"#0B1A2E",
+  "background_color":"#323437",
+  "theme_color":"#323437",
   "icons":[]
 }

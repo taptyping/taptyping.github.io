@@ -1,101 +1,16 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TypeTap</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TypeTap</title><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.json"></head>
 <body>
-<header>
-  <a class="logo" href="#">type<i>tap</i></a>
-  <nav>
-    <button class="nav active" data-page="test">test</button>
-    <button class="nav" data-page="rankings">rankings</button>
-    <button class="nav" data-page="stats">stats</button>
-  </nav>
-  <button id="theme" class="ghost" aria-label="Toggle theme">☼</button>
-</header>
-
+<header><a class="logo" href="#">type<i>tap</i></a><nav><button class="nav active" data-page="test">test</button><button class="nav" data-page="rankings">rankings</button><button class="nav" data-page="stats">stats</button></nav><button id="theme" class="ghost">☼</button></header>
 <main>
-<section id="test" class="page">
-  <div class="card">
-    <div class="toolbar">
-      <div class="modebox">
-        <button class="mode active" data-type="time" data-value="15">15</button>
-        <button class="mode" data-type="time" data-value="30">30</button>
-        <button class="mode" data-type="time" data-value="60">60</button>
-      </div>
-      <button class="mode-toggle" data-type="words">words</button>
-      <button class="mode-toggle" data-type="time">time</button>
-      <button class="mode custom" data-type="custom">custom</button>
-      <button id="restart" class="restart" title="Restart (Tab)">↻</button>
-    </div>
-
-    <div id="customPanel" class="custom-panel hidden">
-      <label>time <input id="customTime" type="number" min="1" max="3600" value="45"><span>sec</span></label>
-      <label>words <input id="customWords" type="number" min="10" max="1000" value="50"></label>
-      <label>type <select id="customType"><option value="time">time</option><option value="words">words</option></select></label>
-      <button id="applyCustom" class="apply-custom">apply</button>
-    </div>
-
-    <div class="live">
-      <span><b id="wpm">0</b> wpm</span>
-      <span><b id="raw">0</b> raw</span>
-      <span><b id="acc">100</b>% acc</span>
-      <span><b id="time">15</b><span id="timeUnit">s</span></span>
-    </div>
-
-    <div id="words" class="words" tabindex="0" aria-label="Typing text"></div>
-    <div class="hint">start typing · <kbd>tab</kbd> to restart</div>
-  </div>
-</section>
-
-<section id="rankings" class="page hidden">
-  <div class="head"><h1>rankings</h1><p>Your best saved scores on this device.</p></div>
-  <div id="rankTable" class="table"></div>
-</section>
-
-<section id="stats" class="page hidden">
-  <div class="head"><h1>stats</h1><p>Your TypeTap history.</p></div>
-  <div class="grid">
-    <div class="stat"><small>best wpm</small><strong id="best">0</strong></div>
-    <div class="stat"><small>average wpm</small><strong id="average">0</strong></div>
-    <div class="stat"><small>tests saved</small><strong id="count">0</strong></div>
-    <div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div>
-  </div>
-</section>
-</main>
-
-<footer>type fast · stay accurate · <span>TypeTap</span></footer>
-
-<div id="resultsOverlay" class="results-overlay hidden">
-  <div class="results-modal">
-    <button id="closeResults" class="close-results" aria-label="Close">×</button>
-    <div class="results-title">test complete</div>
-    <div id="resultsSubtitle" class="results-subtitle"></div>
-
-    <div class="results-big">
-      <div><small>wpm</small><strong id="modalWpm">0</strong></div>
-      <div><small>raw</small><strong id="modalRaw">0</strong></div>
-      <div><small>accuracy</small><strong id="modalAcc">0%</strong></div>
-      <div><small>score</small><strong id="modalScore">0</strong></div>
-    </div>
-
-    <div class="graph-wrap">
-      <div class="graph-label">performance throughout test</div>
-      <canvas id="wpmGraph"></canvas>
-    </div>
-
-    <div class="modal-actions">
-      <button id="save" class="primary">save score</button>
-      <button id="again">try again</button>
-    </div>
-  </div>
-</div>
-
-<script src="script.js"></script>
-<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
-</body>
-</html>
+<section id="test" class="page"><div class="card">
+<div class="toolbar"><div class="mode-menu"><button id="timeMenu" class="mode-toggle active">time <span>15</span></button><div id="timeOptions" class="dropdown"></div></div><div class="mode-menu"><button id="wordsMenu" class="mode-toggle">words <span>25</span></button><div id="wordsOptions" class="dropdown"></div></div><button id="restart" class="restart" title="Restart (Tab)">↻</button></div>
+<div class="live"><span><b id="wpm">0</b> wpm</span><span><b id="raw">0</b> raw</span><span><b id="acc">100</b>% acc</span><span><b id="time">15</b><span id="timeUnit">s</span></span></div>
+<div id="words" class="words" aria-label="Typing text"></div><div class="hint"><kbd>tab</kbd> restart</div>
+</div></section>
+<section id="rankings" class="page hidden"><div class="head"><h1>rankings</h1><p>Your best saved scores on this device.</p></div><div id="rankTable" class="table"></div></section>
+<section id="stats" class="page hidden"><div class="head"><h1>stats</h1><p>Your TypeTap history.</p></div><div class="grid"><div class="stat"><small>best wpm</small><strong id="best">0</strong></div><div class="stat"><small>average wpm</small><strong id="average">0</strong></div><div class="stat"><small>tests</small><strong id="count">0</strong></div><div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div></div></section>
+</main><footer>type fast · stay accurate · <span>TypeTap</span></footer>
+<div id="resultsOverlay" class="results-overlay hidden"><div class="results-modal"><button id="closeResults" class="close-results">×</button><div class="results-title">test complete</div><div id="resultsSubtitle" class="results-subtitle"></div><div class="results-big"><div><small>wpm</small><strong id="modalWpm">0</strong></div><div><small>raw</small><strong id="modalRaw">0</strong></div><div><small>accuracy</small><strong id="modalAcc">0%</strong></div><div><small>score</small><strong id="modalScore">0</strong></div></div><div class="graph-wrap"><div class="graph-label">performance</div><canvas id="wpmGraph"></canvas></div><div class="modal-actions"><button id="again" class="primary">try again</button></div></div></div>
+<script src="script.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body></html>

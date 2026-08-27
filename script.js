@@ -64,16 +64,17 @@ function renderText() {
     html += `<div class="word-line" data-start="${ln.start}" data-end="${ln.start+ln.text.length}">${h}</div>`;
   }
   display.innerHTML = `<div class="word-lines">${html}</div><div id="caret" class="caret" aria-hidden="true"></div>`;
+  currentVisualChar = null;
   charEls = [...display.querySelectorAll('.char')];
   positionCaret(true);
   setCurrentWord();
   positionLines(false);
 }
+let currentVisualChar = null;
 function setCurrentWord() {
-  const words = display.querySelectorAll('.word');
-  words.forEach(w => w.classList.remove('is-current'));
-  const target = charEls[Math.min(currentIndex, Math.max(0, charEls.length - 1))];
-  if (target) target.closest('.word')?.classList.add('is-current');
+  if (currentVisualChar) currentVisualChar.classList.remove('current-char');
+  currentVisualChar = charEls[Math.min(currentIndex, Math.max(0, charEls.length - 1))] || null;
+  if (currentVisualChar) currentVisualChar.classList.add('current-char');
 }
 
 function currentLineFor(idx) {

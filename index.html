@@ -1,5 +1,100 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TypeTap</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head><body><header><a class="logo" href="#"><i>type</i>tap</a><nav><button class="nav active" data-page="test">test</button><button class="nav" data-page="rankings">rankings</button><button class="nav" data-page="stats">stats</button></nav><button id="theme" class="ghost">☼</button></header><main>
-<section id="test" class="page"><div class="card"><div class="modes"><div class="modebox"><button class="mode active" data-time="15">15</button><button class="mode" data-time="30">30</button><button class="mode" data-time="60">60</button></div><span>seconds</span><button id="restart" class="restart">↻</button></div><div class="live"><span><b id="wpm">0</b> wpm</span><span><b id="acc">100</b>% acc</span><span><b id="time">15</b>s</span></div><div id="words" class="words" tabindex="0"></div><input id="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div class="hint">start typing · <kbd>tab</kbd> + <kbd>enter</kbd> to restart</div></div><div id="result" class="result hidden"><div class="resultStats"><div><small>wpm</small><strong id="rwpm">0</strong></div><div><small>accuracy</small><strong id="racc">0%</strong></div><div><small>score</small><strong id="rscore">0</strong></div></div><div><button id="save" class="primary">save score</button><button id="again">try again</button></div></div></section>
-<section id="rankings" class="page hidden"><div class="head"><h1>rankings</h1><p>Your best saved scores on this device.</p></div><div id="rankTable" class="table"></div></section>
-<section id="stats" class="page hidden"><div class="head"><h1>stats</h1><p>Your TypeTap history.</p></div><div class="grid"><div class="stat"><small>best wpm</small><strong id="best">0</strong></div><div class="stat"><small>average wpm</small><strong id="average">0</strong></div><div class="stat"><small>tests saved</small><strong id="count">0</strong></div><div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div></div></section>
-</main><footer>type fast · stay accurate · <span>TypeTap</span></footer><script src="script.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TypeTap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a class="logo" href="#">type<i>tap</i></a>
+  <nav>
+    <button class="nav active" data-page="test">test</button>
+    <button class="nav" data-page="rankings">rankings</button>
+    <button class="nav" data-page="stats">stats</button>
+  </nav>
+  <button id="theme" class="ghost" aria-label="Toggle theme">☼</button>
+</header>
+
+<main>
+<section id="test" class="page">
+  <div class="card">
+    <div class="toolbar">
+      <div class="modebox">
+        <button class="mode active" data-type="time" data-value="15">15</button>
+        <button class="mode" data-type="time" data-value="30">30</button>
+        <button class="mode" data-type="time" data-value="60">60</button>
+      </div>
+      <button class="mode-toggle" data-type="words">words</button>
+      <button class="mode-toggle" data-type="time">time</button>
+      <button class="mode custom" data-type="custom">custom</button>
+      <button id="restart" class="restart" title="Restart">↻</button>
+    </div>
+
+    <div id="customPanel" class="custom-panel hidden">
+      <label>time <input id="customTime" type="number" min="1" max="3600" value="45"><span>sec</span></label>
+      <label>words <input id="customWords" type="number" min="10" max="1000" value="50"></label>
+      <button id="applyCustom" class="apply-custom">apply</button>
+    </div>
+
+    <div class="live">
+      <span><b id="wpm">0</b> wpm</span>
+      <span><b id="acc">100</b>% acc</span>
+      <span><b id="time">15</b><span id="timeUnit">s</span></span>
+    </div>
+
+    <div id="words" class="words" tabindex="0" aria-label="Typing text"></div>
+    <input id="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="hint">start typing · <kbd>tab</kbd> + <kbd>enter</kbd> to restart</div>
+  </div>
+</section>
+
+<section id="rankings" class="page hidden">
+  <div class="head"><h1>rankings</h1><p>Your best saved scores on this device.</p></div>
+  <div id="rankTable" class="table"></div>
+</section>
+
+<section id="stats" class="page hidden">
+  <div class="head"><h1>stats</h1><p>Your TypeTap history.</p></div>
+  <div class="grid">
+    <div class="stat"><small>best wpm</small><strong id="best">0</strong></div>
+    <div class="stat"><small>average wpm</small><strong id="average">0</strong></div>
+    <div class="stat"><small>tests saved</small><strong id="count">0</strong></div>
+    <div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div>
+  </div>
+</section>
+</main>
+
+<footer>type fast · stay accurate · <span>TypeTap</span></footer>
+
+<div id="resultsOverlay" class="results-overlay hidden">
+  <div class="results-modal">
+    <button id="closeResults" class="close-results" aria-label="Close">×</button>
+    <div class="results-title">test complete</div>
+    <div id="resultsSubtitle" class="results-subtitle"></div>
+
+    <div class="results-big">
+      <div><small>wpm</small><strong id="modalWpm">0</strong></div>
+      <div><small>accuracy</small><strong id="modalAcc">0%</strong></div>
+      <div><small>score</small><strong id="modalScore">0</strong></div>
+    </div>
+
+    <div class="graph-wrap">
+      <div class="graph-label">performance throughout test</div>
+      <canvas id="wpmGraph"></canvas>
+    </div>
+
+    <div class="modal-actions">
+      <button id="save" class="primary">save score</button>
+      <button id="again">try again</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

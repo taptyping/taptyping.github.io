@@ -45,7 +45,7 @@ function renderText() {
     while (j < ln.text.length) {
       const global = ln.start + j;
       if (expectedText[global] === ' ') {
-        h += '<span class="space"> </span>';
+        h += `<span data-index="${global}" class="char untyped space"> </span>`;
         j++;
         wordIndex++;
         continue;
@@ -63,7 +63,7 @@ function renderText() {
     }
     html += `<div class="word-line" data-start="${ln.start}" data-end="${ln.start+ln.text.length}">${h}</div>`;
   }
-  display.innerHTML = `<div class="word-lines">${html}</div><div id="caret" class="caret" aria-hidden="true"></div>`;
+  display.innerHTML = `<div class="word-lines">${html}<div id="caret" class="caret" aria-hidden="true"></div></div>`;
   currentVisualChar = null;
   charEls = [...display.querySelectorAll('.char')];
   positionCaret(true);
@@ -73,7 +73,7 @@ function renderText() {
 let currentVisualChar = null;
 function setCurrentWord() {
   if (currentVisualChar) currentVisualChar.classList.remove('current-char');
-  currentVisualChar = charEls[Math.min(currentIndex, Math.max(0, charEls.length - 1))] || null;
+  currentVisualChar = charEls[currentIndex] || null;
   if (currentVisualChar) currentVisualChar.classList.add('current-char');
 }
 
@@ -92,17 +92,34 @@ function positionLines(animate=true) {
   wrap.style.transition = animate ? 'transform .20s cubic-bezier(.2,.75,.2,1)' : 'none';
   wrap.style.transform = `translate3d(0,${y}px,0)`;
   if (!animate) requestAnimationFrame(()=>wrap.style.transition='transform .20s cubic-bezier(.2,.75,.2,1)');
-  scheduleCaret();
   setCurrentWord();
+  scheduleCaret();
+  if (animate) {
+    const startedAt = performance.now();
+    const sync = now => {
+      positionCaret();
+      if (now - startedAt < 260) requestAnimationFrame(sync);
+    };
+    requestAnimationFrame(sync);
+  }
 }
 function positionCaret(force=false) {
   const caret = $('caret');
-  if (!caret || !display) return;
-  const target = charEls[Math.min(currentIndex, charEls.length-1)];
-  if (!target) return;
-  const dr = display.getBoundingClientRect(), tr = target.getBoundingClientRect();
-  caret.style.transform = `translate3d(${tr.left-dr.left-1}px,${tr.top-dr.top + tr.height*.08}px,0)`;
-  caret.style.height = `${Math.max(22, tr.height*.88)}px`;
+  const wrap = display.querySelector('.word-lines');
+  if (!caret || !wrap || !display) return;
+  const target = charEls[currentIndex];
+  const base = display.getBoundingClientRect();
+  if (target) {
+    const tr = target.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+    caret.style.transform = `translate3d(${tr.left-wr.left-1}px,${tr.top-wr.top + tr.height*.08}px,0)`;
+    caret.style.height = `${Math.max(22, tr.height*.88)}px`;
+  } else if (charEls.length) {
+    const last = charEls[charEls.length-1];
+    const lr = last.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+    caret.style.transform = `translate3d(${lr.right-wr.left-1}px,${lr.top-wr.top + lr.height*.08}px,0)`;
+    caret.style.height = `${Math.max(22, lr.height*.88)}px`;
+  }
   if (force) caret.classList.add('ready');
 }
 function scheduleCaret() {

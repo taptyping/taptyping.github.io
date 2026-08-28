@@ -7,7 +7,6 @@ let expectedText = '', currentWords = [], charEls = [];
 let currentIndex = 0, typedChars = [], correctCount = 0, started = false, finished = false;
 let startTime = 0, timer = null, history = [], lastHistorySecond = -1;
 let finalResult = null, caretRaf = 0, pendingCaret = false;
-let lastTestWords = [];
 const timePresets = [15, 30, 60, 120], wordPresets = [10, 25, 50, 100];
 
 async function loadWords() {
@@ -98,7 +97,7 @@ function currentLineFor(idx) {
 function positionLines(animate=true) {
   const wrap = display.querySelector('.word-lines');
   if (!wrap) return;
-  const lineH = window.innerWidth <= 700 ? 48 : 58;
+  const lineH = window.innerWidth <= 700 ? 43 : 52;
   const line = currentLineFor(currentIndex);
   const center = (display.clientHeight-lineH)/2;
   const y = center-line*lineH;
@@ -202,7 +201,7 @@ function finish() {
   recordHistory(true); finished=true; clearInterval(timer); timer=null;
   const m=metrics();
   const score=Math.max(0,Math.round(m.wpm*0.8 + m.acc*2));
-  finalResult={wpm:Math.round(m.wpm),raw:Math.round(m.raw),acc:Math.round(m.acc),score,date:new Date().toLocaleString(),duration,mode:modeType,words:targetWords,testWords:currentWords.slice()};
+  finalResult={wpm:Math.round(m.wpm),raw:Math.round(m.raw),acc:Math.round(m.acc),score,date:new Date().toLocaleString(),duration,mode:modeType,words:targetWords};
   $('modalWpm').textContent=finalResult.wpm; $('modalRaw').textContent=finalResult.raw; $('modalAcc').textContent=finalResult.acc+'%'; $('modalScore').textContent=score;
   $('resultsSubtitle').textContent=modeType==='time'?`${duration} second test`:`${targetWords} word test`;
   autoSave(); $('resultsOverlay').classList.remove('hidden'); requestAnimationFrame(drawGraph);
@@ -212,16 +211,14 @@ function autoSave() {
   scores.push(finalResult); scores.sort((a,b)=>b.score-a.score);
   localStorage.setItem('taptyping_scores',JSON.stringify(scores.slice(0,100)));
 }
-function resetTest(wordsOverride=null) {
+function newTest() {
   clearInterval(timer); timer=null; started=false; finished=false; startTime=0; currentIndex=0; typedChars=[]; correctCount=0; finalResult=null; history=[]; lastHistorySecond=-1;
   const amount=modeType==='words'?targetWords:Math.max(500,Math.ceil(duration*6));
-  currentWords=wordsOverride ? wordsOverride.slice() : pickWords(amount); lastTestWords=currentWords.slice(); expectedText=testText();
+  currentWords=pickWords(amount); expectedText=testText();
   $('resultsOverlay').classList.add('hidden'); $('wpm').textContent='0'; $('raw').textContent='0'; $('acc').textContent='100';
   $('time').textContent=modeType==='words'?targetWords:duration; $('timeUnit').textContent=modeType==='words'?' words':'s';
   renderText();
 }
-function newTest(){ resetTest(); }
-function redoTest(){ if(finalResult?.testWords?.length) resetTest(finalResult.testWords); else if(lastTestWords.length) resetTest(lastTestWords); else resetTest(); }
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Tab') { e.preventDefault(); newTest(); return; }
@@ -264,7 +261,7 @@ $('modeMenu').onclick=e=>{
   $('modeMenu').classList.add('hidden'); newTest();
 };
 document.addEventListener('click',()=> $('modeMenu').classList.add('hidden'));
-$('restart').onclick=newTest; $('again').onclick=redoTest; $('next').onclick=()=>{newTest()}; $('closeResults').onclick=()=>{$('resultsOverlay').classList.add('hidden');newTest()};
+$('restart').onclick=newTest; $('again').onclick=newTest; $('closeResults').onclick=()=>{$('resultsOverlay').classList.add('hidden');newTest()};
 $('theme').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('taptyping_theme',document.body.classList.contains('light')?'light':'dark')};
 if(localStorage.getItem('taptyping_theme')==='light') document.body.classList.add('light');
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden');if(b.dataset.page==='stats')renderStats()});

@@ -1,4 +1,4 @@
-const CACHE = 'taptyping-v17';
+const CACHE = 'taptyping-v14';
 const ASSETS = [
   './',
   './index.html',

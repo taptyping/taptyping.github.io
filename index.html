@@ -9,7 +9,6 @@
   <a class="logo" href="#">tap<i>typing</i></a>
   <nav>
     <button class="nav active" data-page="test">test</button>
-    <button class="nav" data-page="rankings">rankings</button>
     <button class="nav" data-page="stats">stats</button>
   </nav>
   <div class="toolbar">
@@ -26,7 +25,6 @@
   <div id="words" class="words" aria-label="Typing text"></div>
   <div class="hint"><kbd>tab</kbd> restart</div>
 </section>
-<section id="rankings" class="page hidden"><div class="head"><h1>rankings</h1><p>Your best saved scores.</p></div><div id="rankTable" class="table"></div></section>
 <section id="stats" class="page hidden"><div class="head"><h1>stats</h1><p>Your TapTyping history.</p></div><div class="grid"><div class="stat"><small>best wpm</small><strong id="best">0</strong></div><div class="stat"><small>average wpm</small><strong id="average">0</strong></div><div class="stat"><small>tests</small><strong id="count">0</strong></div><div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div></div></section>
 </main>
 <div id="resultsOverlay" class="results-overlay hidden"><div class="results-modal"><button id="closeResults" class="close-results">×</button><div class="results-title">test complete</div><div id="resultsSubtitle" class="results-subtitle"></div><div class="results-big"><div><small>wpm</small><strong id="modalWpm">0</strong></div><div><small>raw</small><strong id="modalRaw">0</strong></div><div><small>accuracy</small><strong id="modalAcc">0%</strong></div><div><small>score</small><strong id="modalScore">0</strong></div></div><div class="graph-wrap"><div class="graph-label">performance</div><canvas id="wpmGraph"></canvas></div><div class="modal-actions"><button id="again" class="primary">try again</button></div></div></div>

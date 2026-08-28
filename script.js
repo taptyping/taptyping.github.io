@@ -24,16 +24,28 @@ function escapeHtml(s) { return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&l
 function testText() { return currentWords.join(' '); }
 
 function buildLines() {
-  const maxChars = window.innerWidth <= 700 ? 38 : 64;
   const lines = [];
-  let start = 0, line = '';
-  for (let i=0;i<expectedText.length;i++) {
-    const ch = expectedText[i];
-    if (line.length >= maxChars && ch === ' ') { lines.push({start, text:line}); line=''; start=i+1; continue; }
-    if (line.length >= maxChars) { lines.push({start, text:line}); line=''; start=i; }
-    line += ch;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const style = getComputedStyle(display);
+  ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const maxWidth = Math.max(100, display.clientWidth - 8);
+  const words = expectedText.split(' ');
+  let pos = 0, lineStart = 0, lineText = '';
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const candidate = lineText ? `${lineText} ${word}` : word;
+    if (lineText && ctx.measureText(candidate).width > maxWidth) {
+      lines.push({start: lineStart, text: lineText});
+      lineStart = pos;
+      lineText = word;
+    } else {
+      lineText = candidate;
+    }
+    pos += word.length;
+    if (i < words.length - 1) pos += 1;
   }
-  if (line) lines.push({start, text:line});
+  if (lineText) lines.push({start: lineStart, text: lineText});
   return lines;
 }
 function renderText() {
@@ -85,7 +97,7 @@ function currentLineFor(idx) {
 function positionLines(animate=true) {
   const wrap = display.querySelector('.word-lines');
   if (!wrap) return;
-  const lineH = window.innerWidth <= 700 ? 34 : 42;
+  const lineH = window.innerWidth <= 700 ? 43 : 52;
   const line = currentLineFor(currentIndex);
   const center = (display.clientHeight-lineH)/2;
   const y = center-line*lineH;
@@ -252,11 +264,11 @@ document.addEventListener('click',()=> $('modeMenu').classList.add('hidden'));
 $('restart').onclick=newTest; $('again').onclick=newTest; $('closeResults').onclick=()=>{$('resultsOverlay').classList.add('hidden');newTest()};
 $('theme').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('taptyping_theme',document.body.classList.contains('light')?'light':'dark')};
 if(localStorage.getItem('taptyping_theme')==='light') document.body.classList.add('light');
-document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden');if(b.dataset.page==='rankings')renderRankings();if(b.dataset.page==='stats')renderStats()});
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden');if(b.dataset.page==='stats')renderStats()});
 window.addEventListener('resize',()=>{if(!expectedText)return;const old=typedChars.slice();renderText();for(let i=0;i<old.length;i++)updateChar(i,old[i]);currentIndex=old.length;positionLines(false);});
 function drawGraph(){const c=$('wpmGraph'),r=c.getBoundingClientRect(),d=devicePixelRatio||1,w=r.width,h=r.height;c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);if(!history.length)return;const l=36,rr=12,top=15,bottom=25,gw=w-l-rr,gh=h-top-bottom,max=Math.max(20,...history.map(p=>Math.max(p.raw,p.wpm))),total=Math.max(1,modeType==='time'?duration:history.at(-1).t);x.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid');for(let i=0;i<4;i++){const y=top+gh*i/3;x.beginPath();x.moveTo(l,y);x.lineTo(w-rr,y);x.stroke()}function series(key,scale){x.beginPath();history.forEach((p,i)=>{const px=l+p.t/total*gw,py=top+gh-p[key]/scale*gh;i?x.lineTo(px,py):x.moveTo(px,py)});const palette=getComputedStyle(document.body);
 x.strokeStyle=key==='wpm'?palette.getPropertyValue('--accent').trim():key==='raw'?palette.getPropertyValue('--muted').trim():palette.getPropertyValue('--text').trim();x.lineWidth=2;x.stroke()}series('raw',max);series('wpm',max);series('acc',100)}
 function scores(){return JSON.parse(localStorage.getItem('taptyping_scores')||'[]')}
-function renderRankings(){const s=scores();$('rankTable').innerHTML=!s.length?'<div class="empty">No tests yet.</div>':'<div class="row head"><span>#</span><span>date</span><span>wpm</span><span>accuracy</span><span>score</span></div>'+s.slice(0,25).map((x,i)=>`<div class="row"><span>${i+1}</span><span>${escapeHtml(x.date)}</span><strong>${x.wpm}</strong><span>${x.acc}%</span><strong>${x.score}</strong></div>`).join('')}
+
 function renderStats(){const s=scores();$('count').textContent=s.length;$('best').textContent=s.length?Math.max(...s.map(x=>x.wpm)):0;$('average').textContent=s.length?Math.round(s.reduce((a,x)=>a+x.wpm,0)/s.length):0;$('bestacc').textContent=s.length?Math.max(...s.map(x=>x.acc))+'%':'0%'}
 loadWords();

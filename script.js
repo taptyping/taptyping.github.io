@@ -37,6 +37,10 @@ function buildLines() {
     const candidate = lineText ? `${lineText} ${word}` : word;
     if (lineText && ctx.measureText(candidate).width > maxWidth) {
       lines.push({start: lineStart, text: lineText});
+      // The wrapping space belongs to the previous word boundary, but we
+      // do not render a leading space on the new line. Keep the new line
+      // indexed at the first character of the word so the caret does not
+      // drift one character on every wrapped line.
       lineStart = pos;
       lineText = word;
     } else {
@@ -77,7 +81,13 @@ function renderText() {
   }
   display.innerHTML = `<div class="word-lines">${html}</div><div id="caret" class="caret" aria-hidden="true"></div>`;
   currentVisualChar = null;
-  charEls = [...display.querySelectorAll('.char')];
+  // Index character elements by their actual global text index.  A wrapped
+  // line can begin at a space, so relying on querySelectorAll order makes
+  // the caret drift by one character after every wrapped line.
+  charEls = [];
+  display.querySelectorAll('.char').forEach(el => {
+    charEls[Number(el.dataset.index)] = el;
+  });
   positionCaret(true);
   setCurrentWord();
   positionLines(false);
@@ -118,17 +128,50 @@ function positionLines(animate=true) {
 function positionCaret(force=false) {
   const caret = $('caret');
   if (!caret || !display) return;
-  const target = charEls[currentIndex];
   const base = display.getBoundingClientRect();
+  let target = charEls[currentIndex];
+  let left, top, height;
+
   if (target) {
     const tr = target.getBoundingClientRect();
-    caret.style.transform = `translate3d(${tr.left-base.left}px,${tr.top-base.top + tr.height*.08}px,0)`;
-    caret.style.height = `${Math.max(22, tr.height*.88)}px`;
+    left = tr.left - base.left;
+    top = tr.top - base.top + tr.height * .08;
+    height = Math.max(22, tr.height * .88);
+  } else if (currentIndex > 0 && charEls[currentIndex - 1]) {
+    // Spaces that start a wrapped line are intentionally not visible.
+    // Place the caret at the beginning of the next visual line instead of
+    // using the previous character, which caused the one-character drift.
+    const lines = [...display.querySelectorAll('.word-line')];
+    const line = lines.find(el => currentIndex >= Number(el.dataset.start) && currentIndex <= Number(el.dataset.end));
+    if (line) {
+      const first = line.querySelector('.char');
+      if (first) {
+        const fr = first.getBoundingClientRect();
+        left = fr.left - base.left;
+        top = fr.top - base.top + fr.height * .08;
+        height = Math.max(22, fr.height * .88);
+      }
+    }
+    if (left === undefined) {
+      const prev = charEls[currentIndex - 1];
+      const pr = prev.getBoundingClientRect();
+      left = pr.right - base.left;
+      top = pr.top - base.top + pr.height * .08;
+      height = Math.max(22, pr.height * .88);
+    }
   } else if (charEls.length) {
-    const last = charEls[charEls.length-1];
-    const lr = last.getBoundingClientRect();
-    caret.style.transform = `translate3d(${lr.right-base.left}px,${lr.top-base.top + lr.height*.08}px,0)`;
-    caret.style.height = `${Math.max(22, lr.height*.88)}px`;
+    const last = charEls.filter(Boolean).at(-1);
+    if (last) {
+      const lr = last.getBoundingClientRect();
+      left = lr.right - base.left;
+      top = lr.top - base.top + lr.height * .08;
+      height = Math.max(22, lr.height * .88);
+    }
+  }
+
+  if (left !== undefined) {
+    caret.style.transform = `translate3d(${left}px,${top}px,0)`;
+    caret.style.height = `${height}px`;
   }
   if (force) caret.classList.add('ready');
 }

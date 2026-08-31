@@ -7,6 +7,7 @@ let expectedText = '', currentWords = [], charEls = [];
 let currentIndex = 0, typedChars = [], correctCount = 0, started = false, finished = false;
 let startTime = 0, timer = null, history = [], lastHistorySecond = -1;
 let finalResult = null, caretRaf = 0, pendingCaret = false;
+let lastTestWords = [], lastTestText = '';
 const timePresets = [15, 30, 60, 120], wordPresets = [10, 25, 50, 100];
 
 async function loadWords() {
@@ -89,7 +90,7 @@ function renderText() {
     charEls[Number(el.dataset.index)] = el;
   });
   positionCaret(true);
-  setCurrentWord();
+  updateVisualColors();
   positionLines(false);
 }
 let currentVisualChar = null;
@@ -97,6 +98,22 @@ function setCurrentWord() {
   if (currentVisualChar) currentVisualChar.classList.remove('current-char');
   currentVisualChar = charEls[currentIndex] || null;
   if (currentVisualChar) currentVisualChar.classList.add('current-char');
+}
+
+function updateVisualColors() {
+  for (let i = 0; i < charEls.length; i++) {
+    const el = charEls[i];
+    if (!el) continue;
+    el.classList.remove('untyped','correct','wrong','current-char');
+    if (i < currentIndex) {
+      el.classList.add(typedChars[i] === expectedText[i] ? 'correct' : 'wrong');
+    } else if (i === currentIndex) {
+      el.classList.add('untyped','current-char');
+    } else {
+      el.classList.add('untyped');
+    }
+  }
+  currentVisualChar = charEls[currentIndex] || null;
 }
 
 function currentLineFor(idx) {
@@ -113,7 +130,7 @@ function positionLines(animate=true) {
   const y = center-line*lineH;
   wrap.style.transition = animate ? 'transform .20s cubic-bezier(.2,.75,.2,1)' : 'none';
   wrap.style.transform = `translate3d(0,${y}px,0)`;
-  setCurrentWord();
+  updateVisualColors();
   scheduleCaret(true);
   if (!animate) requestAnimationFrame(()=>wrap.style.transition='transform .20s cubic-bezier(.2,.75,.2,1)');
   else {
@@ -185,14 +202,14 @@ function scheduleCaret(force=false) {
 }
 function updateChar(index, actual) {
   const el = charEls[index]; if (!el) return;
-  el.classList.remove('untyped','correct','wrong');
+  el.classList.remove('untyped','correct','wrong','current-char');
   el.classList.add(actual === expectedText[index] ? 'correct' : 'wrong');
   if (actual === expectedText[index]) correctCount++;
 }
 function clearChar(index) {
   const el = charEls[index]; if (!el) return;
   if (typedChars[index] === expectedText[index]) correctCount = Math.max(0, correctCount - 1);
-  el.classList.remove('correct','wrong'); el.classList.add('untyped');
+  el.classList.remove('correct','wrong','current-char'); el.classList.add('untyped');
 }
 function metrics() {
   const elapsed = startTime ? Math.max((performance.now()-startTime)/1000, 0.001) : 0;
@@ -254,10 +271,19 @@ function autoSave() {
   scores.push(finalResult); scores.sort((a,b)=>b.score-a.score);
   localStorage.setItem('taptyping_scores',JSON.stringify(scores.slice(0,100)));
 }
+function redoTest() {
+  clearInterval(timer); timer=null; started=false; finished=false; startTime=0; currentIndex=0; typedChars=[]; correctCount=0; finalResult=null; history=[]; lastHistorySecond=-1;
+  currentWords=lastTestWords.length ? lastTestWords.slice() : pickWords(modeType==='words'?targetWords:Math.max(500,Math.ceil(duration*6)));
+  expectedText=lastTestText || currentWords.join(' ');
+  $('resultsOverlay').classList.add('hidden'); $('wpm').textContent='0'; $('raw').textContent='0'; $('acc').textContent='100';
+  $('time').textContent=modeType==='words'?targetWords:duration; $('timeUnit').textContent=modeType==='words'?' words':'s';
+  renderText();
+}
 function newTest() {
   clearInterval(timer); timer=null; started=false; finished=false; startTime=0; currentIndex=0; typedChars=[]; correctCount=0; finalResult=null; history=[]; lastHistorySecond=-1;
   const amount=modeType==='words'?targetWords:Math.max(500,Math.ceil(duration*6));
   currentWords=pickWords(amount); expectedText=testText();
+  lastTestWords=currentWords.slice(); lastTestText=expectedText;
   $('resultsOverlay').classList.add('hidden'); $('wpm').textContent='0'; $('raw').textContent='0'; $('acc').textContent='100';
   $('time').textContent=modeType==='words'?targetWords:duration; $('timeUnit').textContent=modeType==='words'?' words':'s';
   renderText();
@@ -269,7 +295,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Backspace') {
     e.preventDefault();
     if (!started || currentIndex===0) return;
-    currentIndex--; typedChars.pop(); clearChar(currentIndex);
+    currentIndex--; typedChars.pop(); clearChar(currentIndex); updateVisualColors();
     positionLines(true); updateLive(); scheduleCaret(); return;
   }
   if (e.key.length !== 1) return;
@@ -277,7 +303,7 @@ document.addEventListener('keydown', e => {
   beginTest();
   if (currentIndex >= expectedText.length) return;
   typedChars.push(e.key); updateChar(currentIndex,e.key); currentIndex++;
-  setCurrentWord();
+  updateVisualColors();
   const oldLine=currentLineFor(currentIndex-1), newLine=currentLineFor(currentIndex);
   if (oldLine!==newLine) positionLines(true); else scheduleCaret();
   updateLive();
@@ -304,11 +330,11 @@ $('modeMenu').onclick=e=>{
   $('modeMenu').classList.add('hidden'); newTest();
 };
 document.addEventListener('click',()=> $('modeMenu').classList.add('hidden'));
-$('restart').onclick=newTest; $('again').onclick=newTest; $('closeResults').onclick=()=>{$('resultsOverlay').classList.add('hidden');newTest()};
+$('restart').onclick=newTest; $('redo').onclick=redoTest; $('next').onclick=newTest; $('closeResults').onclick=()=>{$('resultsOverlay').classList.add('hidden');newTest()};
 $('theme').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('taptyping_theme',document.body.classList.contains('light')?'light':'dark')};
 if(localStorage.getItem('taptyping_theme')==='light') document.body.classList.add('light');
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden');if(b.dataset.page==='stats')renderStats()});
-window.addEventListener('resize',()=>{if(!expectedText)return;const old=typedChars.slice();renderText();for(let i=0;i<old.length;i++)updateChar(i,old[i]);currentIndex=old.length;positionLines(false);});
+window.addEventListener('resize',()=>{if(!expectedText)return;const old=typedChars.slice();renderText();for(let i=0;i<old.length;i++)updateChar(i,old[i]);currentIndex=old.length;updateVisualColors();positionLines(false);});
 function drawGraph(){const c=$('wpmGraph'),r=c.getBoundingClientRect(),d=devicePixelRatio||1,w=r.width,h=r.height;c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);if(!history.length)return;const l=36,rr=12,top=15,bottom=25,gw=w-l-rr,gh=h-top-bottom,max=Math.max(20,...history.map(p=>Math.max(p.raw,p.wpm))),total=Math.max(1,modeType==='time'?duration:history.at(-1).t);x.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid');for(let i=0;i<4;i++){const y=top+gh*i/3;x.beginPath();x.moveTo(l,y);x.lineTo(w-rr,y);x.stroke()}function series(key,scale){x.beginPath();history.forEach((p,i)=>{const px=l+p.t/total*gw,py=top+gh-p[key]/scale*gh;i?x.lineTo(px,py):x.moveTo(px,py)});const palette=getComputedStyle(document.body);
 x.strokeStyle=key==='wpm'?palette.getPropertyValue('--accent').trim():key==='raw'?palette.getPropertyValue('--muted').trim():palette.getPropertyValue('--text').trim();x.lineWidth=2;x.stroke()}series('raw',max);series('wpm',max);series('acc',100)}
 function scores(){return JSON.parse(localStorage.getItem('taptyping_scores')||'[]')}

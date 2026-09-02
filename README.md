@@ -1,7 +1,6 @@
 # TapTyping v9
 
-- Monkeytype-inspired minimal interface.
-- No box around the typing text.
+-
 - Lightweight character updates to reduce typing lag.
 - Smooth dedicated caret.
 - Correct/incorrect character highlighting.

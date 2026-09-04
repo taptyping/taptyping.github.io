@@ -7,26 +7,59 @@
 <body>
 <header>
   <a class="logo" href="#">tap<i>typing</i></a>
-  <nav>
-    <button class="nav active" data-page="test">test</button>
-    <button class="nav" data-page="stats">stats</button>
-  </nav>
+  <nav><button class="nav active" data-page="test">test</button><button class="nav" data-page="stats">stats</button></nav>
   <div class="toolbar">
     <button id="timeMenu" class="tool active">time <span>15</span></button>
     <button id="wordsMenu" class="tool">words <span>25</span></button>
+    <button id="modeButton" class="tool">mode <span>normal</span></button>
+    <button id="settingsButton" class="tool" title="Settings">⚙</button>
     <button id="restart" class="tool restart" title="Restart (Tab)">↻</button>
     <button id="theme" class="tool" title="Theme">☼</button>
   </div>
 </header>
 <div id="modeMenu" class="mode-menu hidden"></div>
+<div id="settingsPanel" class="settings-panel hidden">
+  <div class="settings-title">settings</div>
+  <label>font size <input id="fontSize" type="range" min="22" max="48" value="32"></label>
+  <label>line height <input id="lineHeight" type="range" min="36" max="60" value="52"></label>
+  <label>caret animation <select id="caretAnimation"><option value="smooth">smooth</option><option value="snappy">snappy</option><option value="off">off</option></select></label>
+  <label>live WPM <input id="liveWpm" type="checkbox" checked></label>
+  <label>live accuracy <input id="liveAcc" type="checkbox" checked></label>
+  <label>keyboard <input id="showKeyboard" type="checkbox"></label>
+  <label>focus mode <input id="focusMode" type="checkbox"></label>
+  <label>error flash <input id="errorFlash" type="checkbox" checked></label>
+</div>
 <main>
 <section id="test" class="page">
   <div class="live"><span><b id="wpm">0</b> wpm</span><span><b id="raw">0</b> raw</span><span><b id="acc">100</b>%</span><span><b id="time">15</b><small id="timeUnit">s</small></span></div>
-  <div id="words" class="words" aria-label="Typing text"></div>
-  <div class="hint"><kbd>tab</kbd> restart</div>
+  <div id="raceBar" class="race-bar hidden"><div><b>you</b><span id="playerRaceWpm">0 WPM</span></div><div class="race-track"><i id="playerRaceFill"></i><i id="ghostRaceFill"></i></div><div><b>ghost</b><span id="ghostRaceWpm">0 WPM</span></div></div>
+  <div id="words" class="words" aria-label="Typing text" tabindex="0"></div>
+  <div id="keyboard" class="keyboard hidden" aria-hidden="true"></div>
+  <div class="hint"><kbd>tab</kbd> restart <span>•</span> click text to focus</div>
 </section>
-<section id="stats" class="page hidden"><div class="head"><h1>stats</h1><p>Your TapTyping history.</p></div><div class="grid"><div class="stat"><small>best wpm</small><strong id="best">0</strong></div><div class="stat"><small>average wpm</small><strong id="average">0</strong></div><div class="stat"><small>tests</small><strong id="count">0</strong></div><div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div></div></section>
+<section id="stats" class="page hidden">
+  <div class="head"><h1>stats</h1><p>Your TapTyping history.</p></div>
+  <div class="grid">
+    <div class="stat"><small>best wpm</small><strong id="best">0</strong></div><div class="stat"><small>average wpm</small><strong id="average">0</strong></div>
+    <div class="stat"><small>tests</small><strong id="count">0</strong></div><div class="stat"><small>best accuracy</small><strong id="bestacc">0%</strong></div>
+    <div class="stat"><small>average accuracy</small><strong id="avgacc">0%</strong></div><div class="stat"><small>peak raw</small><strong id="peakraw">0</strong></div>
+    <div class="stat"><small>15s best</small><strong id="best15">0</strong></div><div class="stat"><small>60s best</small><strong id="best60">0</strong></div>
+  </div>
+  <div class="stats-chart"><div class="chart-title">WPM history</div><canvas id="historyGraph"></canvas></div>
+  <div class="recent-head"><span>recent tests</span><button id="clearStats" class="small-button">clear</button></div>
+  <div id="recentTests" class="recent-tests"></div>
+</section>
 </main>
-<div id="resultsOverlay" class="results-overlay hidden"><div class="results-modal"><button id="closeResults" class="close-results">×</button><div class="results-title">test complete</div><div id="resultsSubtitle" class="results-subtitle"></div><div class="results-big"><div><small>wpm</small><strong id="modalWpm">0</strong></div><div><small>raw</small><strong id="modalRaw">0</strong></div><div><small>accuracy</small><strong id="modalAcc">0%</strong></div><div><small>score</small><strong id="modalScore">0</strong></div></div><div class="graph-wrap"><div class="graph-label">performance</div><canvas id="wpmGraph"></canvas></div><div class="modal-actions"><button id="redo" class="secondary">redo</button><button id="next" class="primary">next</button></div></div></div>
+<div id="resultsOverlay" class="results-overlay hidden">
+  <div class="results-modal">
+    <button id="closeResults" class="close-results">×</button><div id="newBest" class="new-best hidden">NEW PERSONAL BEST</div>
+    <div class="results-title">test complete</div><div id="resultsSubtitle" class="results-subtitle"></div>
+    <div class="results-big"><div><small>wpm</small><strong id="modalWpm">0</strong></div><div><small>raw</small><strong id="modalRaw">0</strong></div><div><small>accuracy</small><strong id="modalAcc">0%</strong></div><div><small>score</small><strong id="modalScore">0</strong></div></div>
+    <div id="compareLine" class="compare-line"></div>
+    <div class="graph-wrap"><div class="graph-label">performance</div><canvas id="wpmGraph"></canvas></div>
+    <div class="modal-details"><span>correct <b id="modalCorrect">0</b></span><span>incorrect <b id="modalIncorrect">0</b></span><span>consistency <b id="modalConsistency">0%</b></span><span>peak <b id="modalPeak">0</b> WPM</span></div>
+    <div class="modal-actions"><button id="redo" class="secondary">redo</button><button id="next" class="primary">next</button></div>
+  </div>
+</div>
 <script src="script.js"></script><script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});}</script>
 </body></html>

@@ -34,7 +34,29 @@ function buildLines(){
   const lines=[],canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),style=getComputedStyle(display);ctx.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;const maxWidth=Math.max(100,display.clientWidth-8);let pos=0,lineStart=0,lineText='';
   for(const word of expectedText.split(' ')){const candidate=lineText?`${lineText} ${word}`:word;if(lineText&&ctx.measureText(candidate).width>maxWidth){lines.push({start:lineStart,text:lineText});lineStart=pos;lineText=word}else lineText=candidate;pos+=word.length+1}if(lineText)lines.push({start:lineStart,text:lineText});return lines;
 }
-function renderText(){const lines=buildLines();let html='',wordIndex=0;for(const ln of lines){let h='',j=0;while(j<ln.text.length){const global=ln.start+j;if(expectedText[global]===' '){h+=`<span data-index="${global}" class="char untyped space"> </span>`;j++;wordIndex++;continue}let k=j;while(k<ln.text.length&&expectedText[ln.start+k]!==' ')k++;let wh=`<span class="word" data-word="${wordIndex}">`;for(let q=j;q<k;q++){const idx=ln.start+q;wh+=`<span data-index="${idx}" class="char untyped">${escapeHtml(ln.text[q])}</span>`}wh+='</span>';h+=wh;j=k}html+=`<div class="word-line" data-start="${ln.start}" data-end="${ln.start+ln.text.length}">${h}</div>`}display.innerHTML=`<div class="word-lines">${html}</div><div id="caret" class="caret"></div>`;charEls=[];display.querySelectorAll('.char').forEach(el=>charEls[+el.dataset.index]=el);updateVisualColors();positionLines(false);updateKeyboard()}
+function renderText(){
+  const lines=buildLines();
+  let html='';
+  for(const ln of lines){
+    let h='';
+    for(let j=0;j<ln.text.length;j++){
+      const idx=ln.start+j;
+      const ch=expectedText[idx];
+      const cls=ch===' ' ? 'char space untyped' : 'char untyped';
+      // Use a non-breaking space so every space has a real, measurable width.
+      // This prevents adjacent words from visually sticking together and gives
+      // the caret a stable rectangle when it reaches a space.
+      h+=`<span data-index="${idx}" class="${cls}">${ch===' ' ? '&nbsp;' : escapeHtml(ch)}</span>`;
+    }
+    html+=`<div class="word-line" data-start="${ln.start}" data-end="${ln.start+ln.text.length}">${h}</div>`;
+  }
+  display.innerHTML=`<div class="word-lines">${html}</div><div id="caret" class="caret"></div>`;
+  charEls=[];
+  display.querySelectorAll('.char').forEach(el=>charEls[+el.dataset.index]=el);
+  updateVisualColors();
+  positionLines(false);
+  updateKeyboard();
+}
 function currentLineFor(idx){const ls=[...display.querySelectorAll('.word-line')];for(let i=0;i<ls.length;i++)if(idx<+ls[i].dataset.end||i===ls.length-1)return i;return 0}
 function positionLines(animate=true){const wrap=display.querySelector('.word-lines');if(!wrap)return;const lh=window.innerWidth<=700?43:(settings.lineHeight||52),line=currentLineFor(currentIndex),center=(display.clientHeight-lh)/2,y=center-line*lh;wrap.style.transition=animate&&settings.caretAnimation!=='off'?'transform .20s cubic-bezier(.2,.75,.2,1)':'none';wrap.style.transform=`translate3d(0,${y}px,0)`;scheduleCaret(true)}
 function positionCaret(force=false){const caret=$('caret');if(!caret)return;const base=display.getBoundingClientRect(),target=charEls[currentIndex];let left,top,height;if(target){const r=target.getBoundingClientRect();left=r.left-base.left;top=r.top-base.top+r.height*.08;height=Math.max(22,r.height*.88)}else if(currentIndex>0&&charEls[currentIndex-1]){const p=charEls[currentIndex-1].getBoundingClientRect();left=p.right-base.left;top=p.top-base.top+p.height*.08;height=Math.max(22,p.height*.88)}if(left!==undefined){caret.style.transition=settings.caretAnimation==='snappy'?'transform .04s linear':'transform .14s cubic-bezier(.22,.8,.22,1)';caret.style.transform=`translate3d(${left}px,${top}px,0)`;caret.style.height=height+'px'}if(force)caret.classList.add('ready')}
